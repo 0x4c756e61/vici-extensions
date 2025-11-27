@@ -34,35 +34,38 @@
       "type": "textfield"
     },
     {
+      "name": "provider",
+      "title": "Wallpaper provider",
+      "description": "What software renders your wallpaper?",
+      "required": true,
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "AWWW",
+          "value": "awww"
+        },
+        {
+          "title": "KDE plasma",
+          "value": "kde-plasma"
+        },
+        {
+          "title": "Custom (Set custom command in the extension preferences)",
+          "value": "custom"
+        }
+      ]
+    },
+    {
       "name": "gridRows",
       "title": "Grid Rows",
       "description": "How many rows do you want to see in the grid?",
       "required": false,
-      "type": "dropdown",
-      "data": [
-        {
-          "title": "3",
-          "value": "3"
-        },
-        {
-          "title": "4",
-          "value": "4"
-        },
-        {
-          "title": "5",
-          "value": "5"
-        },
-        {
-          "title": "6",
-          "value": "6"
-        }
-      ],
+      "type": "textfield",
       "default": "4"
     },
     {
-      "name": "transitionType",
-      "title": "AWWW Transition Type",
-      "description": "The animation type of the sww transition",
+      "name": "awwwtransitionType",
+      "title": "Transition Type for AWWW",
+      "description": "The animation type of the AWWW transition",
       "required": false,
       "type": "dropdown",
       "data": [
@@ -126,38 +129,16 @@
       "default": "random"
     },
     {
-      "name": "transitionDuration",
-      "title": "AWWW Transition Duration",
+      "name": "awwwtransitionDuration",
+      "title": "Transition Duration for AWWW",
       "description": "Duration of the awww transition in seconds",
       "required": false,
-      "type": "dropdown",
-      "data": [
-        {
-          "title": "Eight",
-          "value": "8"
-        },
-        {
-          "title": "Five",
-          "value": "5"
-        },
-        {
-          "title": "Three",
-          "value": "3"
-        },
-        {
-          "title": "Two",
-          "value": "2"
-        },
-        {
-          "title": "One",
-          "value": "1"
-        }
-      ],
+      "type": "textfield",
       "default": "3"
     },
     {
-      "name": "transitionStep",
-      "title": "AWWW Transition Step",
+      "name": "awwwtransitionStep",
+      "title": "Transition Step for AWWW",
       "description": "The amount of steps from old wallpaper RBG to new wallpaper RBG",
       "required": false,
       "type": "dropdown",
@@ -190,8 +171,8 @@
       "default": "90"
     },
     {
-      "name": "transitionFPS",
-      "title": "AWWW Transition FPS",
+      "name": "awwwtransitionFPS",
+      "title": "Transition FPS of the AWWW animation",
       "description": "The target FPS to play the animation at",
       "type": "textfield",
       "required": false,
@@ -242,7 +223,7 @@
     {
       "label": "Toggle Vicinae",
       "name": "toggleVicinaeSetting",
-	  "title": "Toggle Vicinae",
+      "title": "Toggle Vicinae",
       "description": "Set to true to toggle vicinae on wallpaper selection",
       "type": "checkbox",
       "required": false,
@@ -251,7 +232,7 @@
     {
       "label": "Show Image Details",
       "name": "showImageDetails",
-	  "title": "Show Image Details",
+      "title": "Show Image Details",
       "description": "Set to true to show image dimensions and size in MB.",
       "type": "checkbox",
       "required": false,
@@ -327,7 +308,9 @@
   ],
   "scripts": {
     "build": "vici build",
-    "dev": "vici develop"
+    "dev": "vici develop",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@vicinae/api": "^0.16.2",
@@ -335,6 +318,9 @@
     "jimp": "^1.6.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "eslint": "^9.39.1",
+    "prettier": "^3.7.1",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.48.0"
   }
 }
