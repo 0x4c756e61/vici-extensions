@@ -1,41 +1,37 @@
-import { useEffect, useState } from "react";
-import { ActionPanel, Action, Grid, showToast, Toast, Icon, getPreferenceValues } from "@vicinae/api";
-import { getImagesFromPath, Image } from "./utils/image";
-import { WindowManagement as wm } from "@vicinae/api";
-import { omniCommand } from "./utils/hyprland";
+import {
+  Action,
+  ActionPanel,
+  getPreferenceValues,
+  Grid,
+  Icon,
+  showToast,
+  Toast,
+  WindowManagement as wm,
+} from "@vicinae/api";
 import { createHash } from "node:crypto";
-
-// test
+import { useEffect, useState } from "react";
+import { WallpaperProvider } from "./models/wallpaper-provider";
+import { listProviders, providerFromPref } from "./utils/gen-providers";
+import { getImagesFromPath, Image } from "./utils/image";
 
 export default function DisplayGrid() {
   const [monitors, setMonitors] = useState<wm.Screen[]>([]);
   const [isWMSupported, setIsWMSupported] = useState<boolean>(true);
-  const path: string = getPreferenceValues().wallpaperPath;
-  const awwwTransition: string = getPreferenceValues().transitionType || "fade";
-  const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
-  const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
-  const awwwFPS: number = parseInt(getPreferenceValues().transitionFPS) || 60;
-  const colorGen: string = getPreferenceValues().colorGenTool || "none";
-  const gridRows = parseInt(getPreferenceValues().gridRows) || 4;
-  type Preferences = {
-    toggleVicinaeSetting: boolean;
-    showImageDetails: boolean;
-  };
-  const preferences = getPreferenceValues<Preferences>();
-  const postProduction = getPreferenceValues().postProduction;
-  const leftMonitorName: string = getPreferenceValues().leftMonitor;
-  const rightMonitorName: string = getPreferenceValues().rightMonitor;
-  const postCommandString: string = getPreferenceValues().postCommand;
-
-  const [wallpapersPath, setWallpapersPath] = useState<string | null>(null);
   const [wallpapers, setWallpapers] = useState<Image[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const preferences = getPreferenceValues<Preferences>();
+  const [selectedProvider, setSelectedProvider] = useState<WallpaperProvider>(
+    providerFromPref(preferences),
+  );
 
   const monitorNames = monitors.map((m) => m.name);
 
   // Adapted from https://stackoverflow.com/a/79452442 <3
   const hashMonitor = (monitor: wm.Screen): string => {
-    return createHash("sha256").update(JSON.stringify(monitor), "utf8").digest("hex");
+    return createHash("sha256")
+      .update(JSON.stringify(monitor), "utf8")
+      .digest("hex");
   };
 
   useEffect(() => {
@@ -43,12 +39,13 @@ export default function DisplayGrid() {
       setIsWMSupported(false);
 
       showToast({
-        title: "Could not get monitors, monitor specific features will be disabled",
+        title:
+          "Could not get monitors, monitor specific features will be disabled",
         message: err,
         style: Toast.Style.Failure,
       });
     });
-    getImagesFromPath(path)
+    getImagesFromPath(preferences.wallpaperPath)
       .then((ws) => {
         setIsLoading(false);
         setWallpapers(ws);
@@ -60,24 +57,52 @@ export default function DisplayGrid() {
         });
         setIsLoading(false);
       });
-  }, [wallpapersPath]);
+  }, []);
 
   return (
     <Grid
       searchBarPlaceholder="Filter wallpapers..."
-      columns={gridRows}
+      columns={preferences.gridRows * 1} // huhhhh, why does this not work unless I explicitely multiply it by 1?
       aspectRatio="16/9"
       fit={Grid.Fit.Fill}
       isLoading={false}
+      searchBarAccessory={
+        <Grid.Dropdown
+          tooltip="Change Wallpaper Provider"
+          storeValue={true}
+          onChange={(newProvider) => {
+            setSelectedProvider(providerFromPref(preferences, newProvider));
+          }}
+        >
+          {listProviders().map((p) => {
+            return (
+              <Grid.Dropdown.Item
+                title={p.name}
+                key={p.id}
+                value={p.id}
+                icon={p.icon}
+              />
+            );
+          })}
+        </Grid.Dropdown>
+      }
     >
-      <Grid.Section title={isLoading ? `Loading images in '${path}'...` : `Showing images from '${path}'`}>
+      <Grid.Section
+        title={
+          isLoading
+            ? `Loading images in '${preferences.wallpaperPath}'...`
+            : `Showing images from '${preferences.wallpaperPath}'`
+        }
+      >
         {isLoading
-          ? Array.from({ length: gridRows * 3 }).map((_, i) => (
+          ? Array.from({ length: preferences.gridRows * 3 }).map((_, i) => (
               <Grid.Item
                 key={i}
                 content={{ source: "loading.gif" }}
                 title="Loading..."
-                subtitle={preferences.showImageDetails ? `480x270 • 79.5 KB` : undefined}
+                subtitle={
+                  preferences.showImageDetails ? `480x270 • 79.5 KB` : undefined
+                }
               />
             ))
           : wallpapers.map((w) => (
@@ -87,7 +112,10 @@ export default function DisplayGrid() {
                 title={w.name}
                 {...(preferences.showImageDetails && {
                   subtitle: `${w.width}x${w.height} • ${w.size.toFixed(2)} MB`,
-                  accessories: [{ text: `${w.width}x${w.height}` }, { text: `${w.size.toFixed(2)} MB` }],
+                  accessories: [
+                    { text: `${w.width}x${w.height}` },
+                    { text: `${w.size.toFixed(2)} MB` },
+                  ],
                 })}
                 actions={
                   <ActionPanel>
@@ -96,25 +124,23 @@ export default function DisplayGrid() {
                         title={`Set '${w.name}' on All`}
                         icon={Icon.Image}
                         onAction={() => {
-                          omniCommand(
-                            w.fullpath,
-                            "ALL",
-                            awwwTransition,
-                            awwwSteps,
-                            awwwDuration,
-                            preferences.toggleVicinaeSetting,
-                            colorGen,
-                            postProduction,
-                            postCommandString,
-                            awwwFPS,
-                          );
+                          selectedProvider
+                            .setWallpaper(w.fullpath)
+                            .catch((err) => {
+                              showToast({
+                                title: "Unable to set wallpaper !",
+                                message: err, // Seems like this does not render anywhere?
+                                style: Toast.Style.Failure,
+                              });
+                            });
                         }}
                       />
                     </ActionPanel.Section>
 
                     {isWMSupported && (
                       <>
-                        <ActionPanel.Section title="Split on Monitors">
+                        {/*[TODO] Handle monitor splitting */}
+                        {/*<ActionPanel.Section title="Split on Monitors">
                           {monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName) && (
                             <Action
                               title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
@@ -135,7 +161,7 @@ export default function DisplayGrid() {
                               }}
                             />
                           )}
-                        </ActionPanel.Section>
+                        </ActionPanel.Section>*/}
 
                         <ActionPanel.Section title="Set on Specific Monitor">
                           {monitors.map((monitor) => (
@@ -144,18 +170,15 @@ export default function DisplayGrid() {
                               title={`Set on ${monitor.name}`}
                               icon={Icon.Monitor}
                               onAction={() => {
-                                omniCommand(
-                                  w.fullpath,
-                                  monitor.name,
-                                  awwwTransition,
-                                  awwwSteps,
-                                  awwwDuration,
-                                  preferences.toggleVicinaeSetting,
-                                  colorGen,
-                                  postProduction,
-                                  postCommandString,
-                                  awwwFPS,
-                                );
+                                selectedProvider
+                                  .setWallpaper(w.fullpath, monitor)
+                                  .catch((err) => {
+                                    showToast({
+                                      title: "Unable to set wallpaper !",
+                                      message: err,
+                                      style: Toast.Style.Failure,
+                                    });
+                                  });
                               }}
                             />
                           ))}
