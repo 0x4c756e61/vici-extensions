@@ -1,5 +1,5 @@
 import { WindowManagement } from "@vicinae/api/dist";
-import { WallpaperProvider } from "../../models/wallpaper-provider";
+import { WallpaperProvider } from "../../models/wallpaper-engine";
 import { exec } from "child_process";
 import { promisify } from "util";
 

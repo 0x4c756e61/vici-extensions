@@ -1,11 +1,11 @@
 import { WindowManagement } from "@vicinae/api/dist";
-import { WallpaperProvider } from "../../models/wallpaper-provider";
+import { WallpaperEngine } from "../../models/wallpaper-engine";
 import { exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-export class CustomProvider implements WallpaperProvider {
+export class CustomEngine implements WallpaperEngine {
   command: string;
 
   constructor(command: string) {

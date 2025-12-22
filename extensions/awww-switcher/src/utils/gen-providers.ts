@@ -1,13 +1,13 @@
 import {
-  WallpaperProvider,
-  WallpaperProviderMetadata,
-} from "../models/wallpaper-provider";
-import { Awww } from "../providers/wallpapers/awww";
-import { CustomProvider } from "../providers/wallpapers/custom";
-import { MPVPaper } from "../providers/wallpapers/mpvpaper";
-import { PlasmaWallpaper } from "../providers/wallpapers/plasma";
+  WallpaperEngine,
+  WallpaperEngineMetadata,
+} from "../models/wallpaper-engine";
+import { Awww } from "../engines/wallpapers/awww";
+import { CustomEngine } from "../engines/wallpapers/custom";
+import { MPVPaper } from "../engines/wallpapers/mpvpaper";
+import { PlasmaWallpaper } from "../engines/wallpapers/plasma";
 
-export const listProviders = (): WallpaperProviderMetadata[] => {
+export const listEngines = (): WallpaperEngineMetadata[] => {
   return [
     {
       name: "AWWW Deamon",
@@ -32,15 +32,15 @@ export const listProviders = (): WallpaperProviderMetadata[] => {
   ];
 };
 
-export const providerFromPref = (
+export const engineFromPref = (
   prefs: Preferences,
-  overrideSelectedProvider?: Preferences.provider,
-): WallpaperProvider => {
-  const selected_provider: string = overrideSelectedProvider
-    ? overrideSelectedProvider
+  overrideSelectedEngine?: Preferences.engine,
+): WallpaperEngine => {
+  const selected_engine: string = overrideSelectedEngine
+    ? overrideSelectedEngine
     : prefs.provider;
 
-  switch (selected_provider) {
+  switch (selected_engine) {
     default:
     case "awww": {
       return new Awww(
@@ -58,7 +58,7 @@ export const providerFromPref = (
     }
 
     case "custom": {
-      return new CustomProvider(prefs.customProviderCmd);
+      return new CustomEngine(prefs.customProviderCmd);
     }
   }
 };

@@ -1,5 +1,5 @@
 import { WindowManagement } from "@vicinae/api/dist";
-import { WallpaperProvider } from "../../models/wallpaper-provider";
+import { WallpaperEngine } from "../../models/wallpaper-engine";
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -21,7 +21,7 @@ export type AwwwTransitionType =
   | "outer"
   | "random";
 
-export class Awww implements WallpaperProvider {
+export class Awww implements WallpaperEngine {
   fps: number = 60;
   type: AwwwTransitionType = "random";
   step: number = 90;

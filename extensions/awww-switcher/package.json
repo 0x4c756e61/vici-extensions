@@ -34,8 +34,8 @@
       "type": "textfield"
     },
     {
-      "name": "provider",
-      "title": "Wallpaper provider",
+      "name": "engine",
+      "title": "Wallpaper engine",
       "description": "What software renders your wallpaper?",
       "required": true,
       "type": "dropdown",
@@ -191,12 +191,12 @@
       "default": "/run/user/1000/mpvpaper.sock"
     },
     {
-      "name": "customProviderCmd",
-      "title": "Custom Provider Command",
-      "description": "Command to run for the custom wallpaper provider, %p will be replaced with the image path and %d with the display name.",
+      "name": "customEngineCmd",
+      "title": "Custom Engine Command",
+      "description": "Command to run for the custom wallpaper engine, %p will be replaced with the image path and %d with the display name.",
       "type": "textfield",
       "required": false,
-      "placeholder": "plasma-apply-wallpaperimage '%p'"
+      "placeholder": "e.g: plasma-apply-wallpaperimage '%p'"
     },
     {
       "name": "colorGenTool",
