@@ -10,8 +10,8 @@ import {
 } from "@vicinae/api";
 import { createHash } from "node:crypto";
 import { useEffect, useState } from "react";
-import { WallpaperProvider } from "./models/wallpaper-provider";
-import { listProviders, providerFromPref } from "./utils/gen-providers";
+import { WallpaperEngine } from "./models/wallpaper-engine";
+import { listEngines, engineFromPref } from "./utils/gen-providers";
 import { getImagesFromPath, Image } from "./utils/image";
 
 export default function DisplayGrid() {
@@ -21,8 +21,8 @@ export default function DisplayGrid() {
   const [isLoading, setIsLoading] = useState(true);
 
   const preferences = getPreferenceValues<Preferences>();
-  const [selectedProvider, setSelectedProvider] = useState<WallpaperProvider>(
-    providerFromPref(preferences),
+  const [selectedEngine, setSelectedEngine] = useState<WallpaperEngine>(
+    engineFromPref(preferences),
   );
 
   const monitorNames = monitors.map((m) => m.name);
@@ -68,14 +68,14 @@ export default function DisplayGrid() {
       isLoading={false}
       searchBarAccessory={
         <Grid.Dropdown
-          tooltip="Change Wallpaper Provider"
+          tooltip="Change Wallpaper Engine"
           storeValue={true}
-          defaultValue={preferences.provider}
-          onChange={(newProvider) => {
-            setSelectedProvider(providerFromPref(preferences, newProvider));
+          defaultValue={preferences.engine}
+          onChange={(newEngine) => {
+            setSelectedEngine(engineFromPref(preferences, newEngine));
           }}
         >
-          {listProviders().map((p) => {
+          {listEngines().map((p) => {
             return (
               <Grid.Dropdown.Item
                 title={p.name}
@@ -125,7 +125,7 @@ export default function DisplayGrid() {
                         title={`Set '${w.name}' on All`}
                         icon={Icon.Image}
                         onAction={() => {
-                          selectedProvider
+                          selectedEngine
                             .setWallpaper(w.fullpath)
                             .catch((err) => {
                               showToast({
@@ -171,7 +171,7 @@ export default function DisplayGrid() {
                               title={`Set on ${monitor.name}`}
                               icon={Icon.Monitor}
                               onAction={() => {
-                                selectedProvider
+                                selectedEngine
                                   .setWallpaper(w.fullpath, monitor)
                                   .catch((err) => {
                                     showToast({
