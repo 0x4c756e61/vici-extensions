@@ -11,7 +11,7 @@ import {
 import { createHash } from "node:crypto";
 import { useEffect, useState } from "react";
 import { WallpaperEngine } from "./models/wallpaper-engine";
-import { listEngines, engineFromPref } from "./utils/gen-providers";
+import { listEngines, engineFromPref } from "./utils/gen-engines";
 import { getImagesFromPath, Image } from "./utils/image";
 
 export default function DisplayGrid() {
