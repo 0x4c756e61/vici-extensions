@@ -44,7 +44,7 @@ export const engineFromPref = (
 ): WallpaperEngine => {
   const selected_engine: string = overrideSelectedEngine
     ? overrideSelectedEngine
-    : prefs.provider;
+    : prefs.engine;
 
   switch (selected_engine) {
     default:

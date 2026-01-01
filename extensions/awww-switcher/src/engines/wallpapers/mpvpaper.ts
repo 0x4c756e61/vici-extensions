@@ -1,11 +1,11 @@
 import { WindowManagement } from "@vicinae/api/dist";
-import { WallpaperProvider } from "../../models/wallpaper-engine";
+import { WallpaperEngine } from "../../models/wallpaper-engine";
 import { exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-export class MPVPaper implements WallpaperProvider {
+export class MPVPaper implements WallpaperEngine {
   socket_url: string;
 
   constructor(socket_url?: string) {
@@ -18,7 +18,7 @@ export class MPVPaper implements WallpaperProvider {
 
   async setWallpaper(
     path: string,
-    // Disabled since mpvpaper doesn't seem to support selectingthe display on the client side
+    // Disabled since mpvpaper doesn't seem to support selecting the display on the client side
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _monitor?: WindowManagement.Screen,
   ): Promise<void> {
