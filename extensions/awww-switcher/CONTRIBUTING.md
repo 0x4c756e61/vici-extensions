@@ -40,4 +40,74 @@ You're all set 🎉 We're eager to see your next contribution !
 
 
 ##### Adding support for other engines and color generators
-WIP
+###### Wallpaper engines
+> [!note]
+> In the following document, the words "engine" and "backend" are used interchangibely
+
+Adding support for other wallpaper engines is pretty easy with our new abstractions! All you have to do is create a new file in src/engines/wallpapers, this file will host the code that speaks to your wallpaper backend, and implement the `WallpaperEngine` class. Here's a template to get you started:
+
+```ts
+import { WindowManagement } from "@vicinae/api/dist";
+import { WallpaperEngine } from "@models/wallpaper-engine";
+import { execAsync } from "@utils/commons";
+
+export class MyWallpaperEngine implements WallpaperEngine {
+  serverIsRunning(): boolean {
+    throw new Error("Method not implemented.");
+  }
+
+  async setWallpaper(
+    path: string,
+    monitor?: WindowManagement.Screen,
+  ): Promise<void> {
+    try {
+      await execAsync(`command to change my wallpaper to ${path}`);
+
+      return Promise.resolve();
+    } catch (error) {
+      if (error instanceof Error) {
+        return Promise.reject(error.message);
+      }
+
+      return Promise.reject("An unknown error occured");
+    }
+  }
+}
+```
+
+Need more examples? Take a look at the other implementations in [src/engines/wallpapers](https://github.com/0x4c756e61/vici-extensions/tree/refactor/awww-switcher/extensions/awww-switcher/src/engines/wallpapers)!
+
+Once this is done, there's a couple more things you need to do to make sure the user can select your backend. First you need to add a new entry to the "engine" preference in the extension's package.json (you can add settngs to your backend here as well, just like we do for AWWW), after which you'll have to populate the `src/utils/gen-providers.ts` file with the relevant metadata for your engine, the `listEngines()` function will be used to show the user the selectable engines inside the search bar in the grid view, while the `engineFromPref()` function will generate the coresponding Backend instance following the user's extension preferences.
+
+> [!tip]
+> The `WallpaperEngineMetadata` used in `listEngines()` requires you to provide an Icon, this can be the name of a resource or an emoji. If your backend does not have it's own icon, we recommend you use the main project's icon (for example hyprpaper uses the hyprland logo) or the developer's profile picture
+
+Now your user can use your engine congrats !!
+
+###### Color generators
+Adding support for a new color generator is even simpler !
+
+All this requires you to do, is to create a new file in `src/engines/colors/` to host your code and implement the `ColorGenerator` Class, for which we provide a template:
+
+```ts
+import { ColorGenerator } from "@models/colors";
+import { execAsync } from "@utils/commons";
+
+export class MyColorGenerator implements ColorGenerator {
+  async setColor(wallpaperPath: string): Promise<void> {
+    try {
+      await execAsync(`Command to change colors using a wallpaper '${wallpaperPath}' as source`);
+      return Promise.resolve();
+    } catch (error) {
+      if (error instanceof Error) {
+        return Promise.reject(error.message);
+      }
+
+      return Promise.reject("An unknown error occured");
+    }
+  }
+}
+```
+Finally, you have to populate the `colorGeneratorFromPrefs` function in `src/utils/gen-providers.ts` and add a new entry to the "Color Generator" field in the package.json.
+
+Everything is ready, your color generator can now be used!
