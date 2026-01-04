@@ -76,7 +76,7 @@ export const engineFromPref = (
     }
 
     case "custom": {
-      return new CustomEngine(prefs.customProviderCmd);
+      return new CustomEngine(prefs.customEngineCmd);
     }
   }
 };
