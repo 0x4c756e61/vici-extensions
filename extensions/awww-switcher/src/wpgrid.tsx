@@ -18,6 +18,7 @@ import {
 } from "./utils/gen-providers";
 import { getImagesFromPath, Image } from "./utils/image";
 import { displayError } from "./utils/commons";
+import { runConvertSplit } from "@utils/imagemagik";
 
 export default function DisplayGrid() {
   const [monitors, setMonitors] = useState<wm.Screen[]>([]);
@@ -30,13 +31,50 @@ export default function DisplayGrid() {
     engineFromPref(preferences),
   );
 
-  const monitorNames = monitors.map((m) => m.name);
+  const connectedMonitors = monitors.map((m) => m.name);
 
   // Adapted from https://stackoverflow.com/a/79452442 <3
   const hashMonitor = (monitor: wm.Screen): string => {
     return createHash("sha256")
       .update(JSON.stringify(monitor), "utf8")
       .digest("hex");
+  };
+
+  const handleSetWallpaer = (path: string, monitor?: wm.Screen) => {
+    selectedEngine.setWallpaper(path, monitor).catch(async (err) => {
+      await displayError("Unable to set wallpaper !", err);
+    });
+
+    colorGeneratorFromPrefs(preferences)
+      .setColor(path)
+      .catch(async (err) => {
+        await displayError("Color generation failed !", err);
+      });
+  };
+
+  const handleImageSplitting = async (path: string) => {
+    try {
+      const images = await runConvertSplit(path);
+      if (images.length != 2)
+        throw new Error(
+          `Splitting wallpaper resulted in ${images.length} wallpapers: ${images}`,
+        );
+
+      for (const half of images) {
+        selectedEngine.setWallpaper(half).catch(async (err) => {
+          throw new Error(err.message);
+        });
+      }
+
+      colorGeneratorFromPrefs(preferences)
+        .setColor(path)
+        .catch(async (err) => {
+          await displayError("Color generation failed !", err);
+        });
+    } catch (error) {
+      if (error instanceof Error)
+        await displayError("Splitting wallpaper failed !", error.message);
+    }
   };
 
   useEffect(() => {
@@ -129,53 +167,28 @@ export default function DisplayGrid() {
                       <Action
                         title={`Set '${w.name}' on All`}
                         icon={Icon.Image}
-                        onAction={() => {
-                          selectedEngine
-                            .setWallpaper(w.fullpath)
-                            .catch(async (err) => {
-                              await displayError(
-                                "Unable to set wallpaper !",
-                                err,
-                              );
-                            });
-
-                          colorGeneratorFromPrefs(preferences)
-                            .setColor(w.fullpath)
-                            .catch(async (err) => {
-                              await displayError(
-                                "Color generation failed !",
-                                err,
-                              );
-                            });
-                        }}
+                        onAction={() => handleSetWallpaer(w.fullpath)}
                       />
                     </ActionPanel.Section>
 
                     {isWMSupported && (
                       <>
-                        {/*[TODO] Handle monitor splitting */}
-                        {/*<ActionPanel.Section title="Split on Monitors">
-                          {monitorNames.includes(leftMonitorName) && monitorNames.includes(rightMonitorName) && (
-                            <Action
-                              title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
-                              icon={Icon.ArrowsExpand}
-                              onAction={() => {
-                                omniCommand(
-                                  w.fullpath,
-                                  `${leftMonitorName}|${rightMonitorName}`,
-                                  awwwTransition,
-                                  awwwSteps,
-                                  awwwDuration,
-                                  preferences.toggleVicinaeSetting,
-                                  colorGen,
-                                  postProduction,
-                                  postCommandString,
-                                  awwwFPS,
-                                );
-                              }}
-                            />
-                          )}
-                        </ActionPanel.Section>*/}
+                        <ActionPanel.Section title="Split on Monitors">
+                          {connectedMonitors.includes(
+                            preferences.leftMonitorName,
+                          ) &&
+                            connectedMonitors.includes(
+                              preferences.rightMonitorName,
+                            ) && (
+                              <Action
+                                title={`Split wallpaper ${preferences.leftMonitorName} | ${preferences.rightMonitorName}`}
+                                icon={Icon.ArrowsExpand}
+                                onAction={async () =>
+                                  await handleImageSplitting(w.fullpath)
+                                }
+                              />
+                            )}
+                        </ActionPanel.Section>
 
                         <ActionPanel.Section title="Set on Specific Monitor">
                           {monitors.map((monitor) => (
@@ -183,25 +196,9 @@ export default function DisplayGrid() {
                               key={hashMonitor(monitor)} // This should be more resistant than simply using monitor.model, in case someone has the same monitor twice
                               title={`Set on ${monitor.name}`}
                               icon={Icon.Monitor}
-                              onAction={() => {
-                                selectedEngine
-                                  .setWallpaper(w.fullpath, monitor)
-                                  .catch(async (err) => {
-                                    await displayError(
-                                      "Unable to set wallpaper !",
-                                      err,
-                                    );
-                                  });
-
-                                colorGeneratorFromPrefs(preferences)
-                                  .setColor(w.fullpath)
-                                  .catch(async (err) => {
-                                    await displayError(
-                                      "Color generation failed !",
-                                      err,
-                                    );
-                                  });
-                              }}
+                              onAction={() =>
+                                handleSetWallpaer(w.fullpath, monitor)
+                              }
                             />
                           ))}
                         </ActionPanel.Section>
