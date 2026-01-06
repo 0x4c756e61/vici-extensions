@@ -60,11 +60,16 @@ export default function DisplayGrid() {
           `Splitting wallpaper resulted in ${images.length} wallpapers: ${images}`,
         );
 
-      for (const half of images) {
-        selectedEngine.setWallpaper(half).catch(async (err) => {
+      const leftMonitor = monitors.find(preferences.leftMonitor);
+      const rightMonitor = monitors.find(preferences.rightMonitor);
+
+      if (!leftMonitor || !rightMonitor) return;
+
+      selectedEngine
+        .setWallpaper(images[0], monitors.find)
+        .catch(async (err) => {
           throw new Error(err.message);
         });
-      }
 
       colorGeneratorFromPrefs(preferences)
         .setColor(path)
@@ -84,7 +89,7 @@ export default function DisplayGrid() {
       showToast({
         title:
           "Could not get monitors, monitor specific features will be disabled",
-        message: err,
+        message: err as string,
         style: Toast.Style.Failure,
       });
     });

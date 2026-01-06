@@ -1,7 +1,6 @@
 import { readdir, stat } from "fs/promises";
-import { createReadStream } from "fs";
 import * as _path from "path";
-import { imageSize } from "image-size";
+import { imageSizeFromFile } from "image-size/fromFile";
 
 const hyprpaperSupportedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
 
@@ -59,15 +58,15 @@ const processImage = async (
     };
 
     if (showExtraData) {
-      const buffer = await new Promise<Buffer>((resolve, reject) => {
-        const stream = createReadStream(path, { highWaterMark: 32768 });
-        const chunks: Buffer[] = [];
-        stream.on("data", (chunk) => chunks.push(chunk as Buffer));
-        stream.on("end", () => resolve(Buffer.concat(chunks)));
-        stream.on("error", reject);
-      });
+      // const buffer = await new Promise<Buffer>((resolve, reject) => {
+      //   const stream = createReadStream(path, { highWaterMark: 32768 });
+      //   const chunks: Buffer[] = [];
+      //   stream.on("data", (chunk) => chunks.push(chunk as Buffer));
+      //   stream.on("end", () => resolve(Buffer.concat(chunks)));
+      //   stream.on("error", reject);
+      // });
 
-      const dimensions = imageSize(buffer);
+      const dimensions = imageSizeFromFile(path);
       if (!dimensions.width || !dimensions.height) {
         throw new Error("Invalid image dimensions");
       }
